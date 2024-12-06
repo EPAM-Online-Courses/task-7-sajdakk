@@ -1,8 +1,10 @@
 package efs.task.reflection;
 
 import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.Collections;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.*;
 
 public class ClassInspector {
 
@@ -16,9 +18,17 @@ public class ClassInspector {
    * @return lista zawierająca tylko unikalne nazwy pól oznaczonych adnotacją
    */
   public static Collection<String> getAnnotatedFields(final Class<?> type,
-      final Class<? extends Annotation> annotation) {
-    //TODO usuń zawartość tej metody i umieść tutaj swoje rozwiązanie
-    return Collections.emptyList();
+                                                      final Class<? extends Annotation> annotation) {
+    List<String> annotatedFields = new ArrayList<>();
+
+    Field[] fields = type.getDeclaredFields();
+    for (Field field : fields) {
+      if (field.isAnnotationPresent(annotation)) {
+        annotatedFields.add(field.getName());
+      }
+    }
+
+    return annotatedFields;
   }
 
   /**
@@ -31,8 +41,22 @@ public class ClassInspector {
    * implementowane
    */
   public static Collection<String> getAllDeclaredMethods(final Class<?> type) {
-    //TODO usuń zawartość tej metody i umieść tutaj swoje rozwiązanie
-    return Collections.emptyList();
+    Set<String> allMethods = new HashSet<>();
+
+    Method[] declaredMethods = type.getDeclaredMethods();
+    for (Method method : declaredMethods) {
+      allMethods.add(method.getName());
+    }
+
+    Class<?>[] interfaces = type.getInterfaces();
+    for (Class<?> implementedInterface : interfaces) {
+      Method[] interfaceMethods = implementedInterface.getDeclaredMethods();
+      for (Method method : interfaceMethods) {
+        allMethods.add(method.getName());
+      }
+    }
+
+    return allMethods;
   }
 
   /**
@@ -50,7 +74,33 @@ public class ClassInspector {
    * @throws Exception wyjątek spowodowany nie znalezieniem odpowiedniego konstruktora
    */
   public static <T> T createInstance(final Class<T> type, final Object... args) throws Exception {
-    //TODO usuń zawartość tej metody i umieść tutaj swoje rozwiązanie
-    return null;
+    Constructor<?> constructor = findMatchingConstructor(type, args);
+    constructor.setAccessible(true);
+    return (T) constructor.newInstance(args);
+  }
+
+  private static Constructor<?> findMatchingConstructor(Class<?> type, Object[] args) throws NoSuchMethodException {
+    Constructor<?>[] constructors = type.getDeclaredConstructors();
+    for (Constructor<?> constructor : constructors) {
+      Class<?>[] parameterTypes = constructor.getParameterTypes();
+      if (isMatchingArguments(parameterTypes, args)) {
+        return constructor;
+      }
+    }
+    throw new NoSuchMethodException("Matching constructor not found");
+  }
+
+  private static boolean isMatchingArguments(Class<?>[] parameterTypes, Object[] args) {
+    if (parameterTypes.length != args.length) {
+      return false;
+    }
+
+    for (int i = 0; i < parameterTypes.length; i++) {
+      if (!parameterTypes[i].isInstance(args[i])) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
