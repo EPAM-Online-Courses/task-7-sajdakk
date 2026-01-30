@@ -19,7 +19,7 @@
         
         <version.depenency.jackson.databind>2.14.2</version.depenency.jackson.databind>
         <version.depenency.junit.jupiter>5.9.2</version.depenency.junit.jupiter>
-        <version.depenency.assertj.core>3.24.2</version.depenency.assertj.core>
+        <version.depenency.assertj.core>3.27.7</version.depenency.assertj.core>
     </properties>
 
     <dependencies>
